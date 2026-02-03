@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PriceFirstNow - Instant Price Ranges</title>
+  <meta name="description" content="Instant local price ranges for remodeling, cleaning, plumbing, HVAC, and pet care in Palm Beach and Broward County.">
+
+  <style>
+    :root{
+      --bg:#070b34;
+      --text:#ffffff;
+      --muted:#c7d2fe;
+      --card:rgba(255,255,255,.08);
+      --card2:rgba(255,255,255,.06);
+      --border:rgba(255,255,255,.16);
+      --shadow:0 22px 70px rgba(0,0,0,.45);
+      --accent:#22d3ee;
+      --accent2:#a78bfa;
+      --accent3:#34d399;
+      --ink:#031018;
+      --radius:22px;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,Helvetica,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(900px 650px at 10% -10%, rgba(34,211,238,.35), transparent),
+        radial-gradient(900px 650px at 90% 0%, rgba(167,139,250,.35), transparent),
+        radial-gradient(900px 650px at 70% 120%, rgba(52,211,153,.22), transparent),
+        var(--bg);
+      min-height:100vh;
+    }
+
+    a{color:inherit;text-decoration:none}
+
+    .container{max-width:1180px;margin:0 auto;padding:22px}
+
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      padding:8px 0 18px;
+    }
+
+    .brand{display:flex;align-items:center;gap:12px;font-weight:900;letter-spacing:.2px}
+    .mark{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:var(--shadow)}
+    .brandName{font-size:18px}
+
+    nav{display:flex;gap:14px;flex-wrap:wrap}
+    nav a{font-weight:800;opacity:.9}
+    nav a:hover{opacity:1;text-decoration:underline}
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .hero{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:18px;
+      align-items:stretch;
+    }
+
+    .heroLeft{padding:30px}
+    .heroRight{padding:20px}
+
+    h1{margin:0 0 12px;font-size:46px;line-height:1.05}
+    h2{margin:0 0 10px;font-size:22px}
+    .muted{color:var(--muted);line-height:1.55}
+
+    .ctaRow{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+
+    .btn{
+      padding:12px 16px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.18);
+      font-weight:900;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      background:rgba(255,255,255,.10);
+      color:var(--text);
+      transition:transform .12s ease, opacity .12s ease;
+    }
+
+    .btn.primary{
+      background:linear-gradient(135deg,var(--accent),var(--accent3));
+      border:0;
+      color:var(--ink);
+    }
+
+    .btn.ghost{
+      background:rgba(255,255,255,.10);
+    }
+
+    .btn:hover{transform:translateY(-1px);opacity:1}
+
+    .badges{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .badge{
+      padding:10px 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.08);
+      font-weight:900;
+      font-size:13px;
+    }
+
+    /* Quote panel */
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .tab{
+      padding:10px 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.20);
+      background:rgba(255,255,255,.10);
+      cursor:pointer;
+      font-weight:900;
+    }
+    .tab.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--ink);border:0}
+
+    form{display:grid;gap:10px}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+    label{font-size:12px;font-weight:900;color:var(--muted)}
+
+    input, select, textarea{
+      width:100%;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(0,0,0,.22);
+      color:var(--text);
+      outline:none;
+    }
+    input:focus, select:focus, textarea:focus{border-color:rgba(34,211,238,.55)}
+    textarea{min-height:84px}
+
+    .quoteBox{
+      margin-top:12px;
+      padding:16px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(0,0,0,.30);
+    }
+    .quoteAmt{font-size:26px;font-weight:1000;letter-spacing:.2px}
+    .fine{color:var(--muted);font-size:13px;line-height:1.55;margin:0}
+
+    /* Info grid */
+    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+    .mini{padding:16px}
+    .mini h3{margin:0 0 6px}
+    .mini p{margin:0;color:var(--muted);line-height:1.55}
+
+    section{padding:20px;margin-top:18px;scroll-margin-top:90px}
+
+    footer{margin:28px 0 8px;color:var(--muted);font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+    /* Mobile */
+    @media (max-width:960px){
+      .hero{grid-template-columns:1fr}
+    }
+    @media (max-width:640px){
+      h1{font-size:34px}
+      .heroLeft{padding:22px}
+      .heroRight{padding:16px}
+      .row2{grid-template-columns:1fr}
+      .btn{width:100%}
+      nav{justify-content:center}
+      header{flex-direction:column;align-items:flex-start}
+    }
+    @media (max-width:560px){
+      h1{font-size:36px;line-height:1.08}
+      .ctaRow{flex-direction:column}
+      .grid3{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="brand">
+      <div class="mark" aria-hidden="true"></div>
+      <div class="brandName">PriceFirstNow</div>
+    </div>
+    <nav>
+      <a href="#quote">Get Quote</a>
+      <a href="#how">How it works</a>
+      <a href="#providers">Providers</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+
+    <section class="card heroLeft">
+      <h1>See the price first.<br>Then choose your provider.</h1>
+      <p class="muted">Instant price ranges for home services in Broward and Palm Beach County. No calls. No pressure.</p>
+
+      <div class="ctaRow">
+        <button class="btn primary" type="button" onclick="document.querySelector('#quote').scrollIntoView({behavior:'smooth'})">Get Instant Quote</button>
+        <button class="btn ghost" type="button" onclick="document.querySelector('#providers').scrollIntoView({behavior:'smooth'})">Become a Provider</button>
+      </div>
+
+      <div class="badges">
+        <div class="badge">60-second estimate</div>
+        <div class="badge">Price-aware clients</div>
+        <div class="badge">Local matching</div>
+        <div class="badge">No bank info</div>
+      </div>
+    </section>
+
+    <section class="card heroRight" id="quote">
+      <div class="tabs" aria-label="Services">
+        <button class="tab active" type="button" data-svc="cleaning">Cleaning</button>
+        <button class="tab" type="button" data-svc="remodel">Remodeling</button>
+        <button class="tab" type="button" data-svc="plumbing">Plumbing</button>
+        <button class="tab" type="button" data-svc="hvac">HVAC</button>
+        <button class="tab" type="button" data-svc="pet">Pet Care</button>
+      </div>
+
+      <h2 style="margin-top:0">Instant Price Estimate</h2>
+
+      <form id="quoteForm">
+        <div class="row2">
+          <div>
+            <label for="county">County</label>
+            <select id="county" required>
+              <option value="broward" selected>Broward</option>
+              <option value="palmbeach">Palm Beach</option>
+            </select>
+          </div>
+          <div>
+            <label for="zip">ZIP Code</label>
+            <input id="zip" inputmode="numeric" maxlength="5" placeholder="33063" required>
+          </div>
+        </div>
+
+        <div>
+          <label for="service">Service type</label>
+          <select id="service"></select>
+        </div>
+
+        <div>
+          <label for="size">Square Footage / Units</label>
+          <input id="size" inputmode="numeric" placeholder="e.g. 500" required>
+        </div>
+
+        <button class="btn primary" style="width:100%" type="button" id="showBtn">Show Price Range</button>
+
+        <div class="quoteBox" id="quoteBox" style="display:none">
+          <div class="quoteAmt" id="result"></div>
+          <p class="fine" id="note">Estimates are market-based ranges from local providers. Final pricing depends on scope, access, materials, and site conditions.</p>
+          <p class="fine" id="typical" style="margin-top:6px"></p>
+          <div style="margin-top:10px">
+            <button class="btn ghost" type="button" id="matchBtn">Get Matched</button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+  </div>
+
+  <div class="grid3" id="how">
+    <div class="card mini">
+      <h3>1) Answer a few questions</h3>
+      <p>We estimate based on size, service type, and local market ranges.</p>
+    </div>
+    <div class="card mini">
+      <h3>2) Get a price range instantly</h3>
+      <p>Transparent ranges help you avoid surprises and reduce wasted calls.</p>
+    </div>
+    <div class="card mini">
+      <h3>3) Get matched with providers</h3>
+      <p>We route your request to providers that match your area and service.</p>
+    </div>
+  </div>
+
+  <section class="card" id="providers">
+    <h2>Become a Provider</h2>
+    <p class="muted">Get price-aware local leads. No monthly fee during launch.</p>
+
+    <label for="pname">Name</label>
+    <input id="pname" autocomplete="name">
+
+    <label for="pcompany" style="margin-top:10px">Company</label>
+    <input id="pcompany" autocomplete="organization">
+
+    <label for="pemail" style="margin-top:10px">Email</label>
+    <input id="pemail" type="email" autocomplete="email">
+
+    <button class="btn primary" style="margin-top:14px" type="button" onclick="providerApply()">Send Application</button>
+
+    <p class="fine" style="margin-top:10px">This MVP uses email to collect provider signups. Later, we can add a real form and database.</p>
+  </section>
+
+  <section class="card" id="contact">
+    <h2>Contact</h2>
+    <p class="muted">Questions or early access?</p>
+    <a id="contactLink" class="btn ghost" href="#">Email Us</a>
+
+    <p class="fine" style="margin-top:12px">Tip: In the footer, click Set admin email to change where leads are sent (no code editing needed).</p>
+  </section>
+
+  <footer>
+    <div>&copy; <span id="year"></span> PriceFirstNow</div>
+    <div><a href="#" id="setEmailLink" style="text-decoration:underline">Set admin email</a></div>
+  </footer>
+
+</div>
+
+<script>
+  // Default email (editable via footer link)
+  const DEFAULT_ADMIN_EMAIL = "pricefirstnow@gmail.com";
+  let ADMIN_EMAIL = localStorage.getItem('PFN_ADMIN_EMAIL') || DEFAULT_ADMIN_EMAIL;
+
+  // Multipliers (simple MVP)
+  const COUNTY_MULT = { broward: 1.00, palmbeach: 1.08 };
+
+  // Service lists
+  const SERVICE_LIST = {
+    cleaning: ["Cleaning"],
+    remodel: ["Remodeling"],
+    plumbing: ["Plumbing"],
+    hvac: ["HVAC"],
+    pet: ["Pet Care"]
+  };
+
+  let activeCategory = 'cleaning';
+
+  function money(n){
+    return '$' + Math.round(Number(n)).toLocaleString();
+  }
+
+  function validateZip(v){
+    return /^[0-9]{5}$/.test(String(v || '').trim());
+  }
+
+  function applyConfidenceBand(lo, hi){
+    // Global narrowing
+    return { lo: lo * 1.05, hi: hi * 0.80 };
+  }
+
+  function typicalBand(lo, hi){
+    const span = Math.max(0, hi - lo);
+    return { lo: lo + span * 0.35, hi: lo + span * 0.65 };
+  }
+
+  function setCategory(cat){
+    activeCategory = cat;
+    document.querySelectorAll('.tab').forEach(function(b){
+      b.classList.toggle('active', b.dataset.svc === cat);
+    });
+
+    // Populate service dropdown (one item per category for MVP)
+    const sel = document.getElementById('service');
+    sel.innerHTML = '';
+    SERVICE_LIST[cat].forEach(function(name){
+      const opt = document.createElement('option');
+      opt.value = cat;
+      opt.textContent = name;
+      sel.appendChild(opt);
+    });
+
+    // Hide quote when switching
+    document.getElementById('quoteBox').style.display = 'none';
+  }
+
+  function calculate(){
+    const county = document.getElementById('county').value;
+    const zip = document.getElementById('zip').value.trim();
+    const size = Number(document.getElementById('size').value);
+
+    if(!validateZip(zip)){
+      alert('Please enter a 5-digit ZIP code.');
+      return null;
+    }
+
+    if(!size || size < 1){
+      alert('Enter a realistic size');
+      return null;
+    }
+
+    // Simple MVP math (you can customize per service later)
+    let low = size * 1.5;
+    let high = size * 3.5;
+
+    // Category multipliers so each category behaves differently
+    const svcMult = { cleaning: 1.0, pet: 0.35, remodel: 1.25, plumbing: 1.15, hvac: 1.4 };
+    const m = svcMult[activeCategory] || 1.0;
+    low *= m;
+    high *= m;
+
+    // County adjustment
+    low *= COUNTY_MULT[county] || 1.0;
+    high *= COUNTY_MULT[county] || 1.0;
+
+    // Global narrowing
+    const c = applyConfidenceBand(low, high);
+    low = c.lo;
+    high = c.hi;
+
+    return { low: low, high: high, county: county, zip: zip, cat: activeCategory };
+  }
+
+  function providerApply(){
+    const name = document.getElementById('pname').value.trim();
+    const company = document.getElementById('pcompany').value.trim();
+    const email = document.getElementById('pemail').value.trim();
+
+    if(!name || !email){
+      alert('Please enter at least your name and email.');
+      return;
+    }
+
+    const body = encodeURIComponent(
+      'Provider application
+' +
+      'Name: ' + name + '
+' +
+      'Company: ' + company + '
+' +
+      'Email: ' + email + '
+'
+    );
+
+    window.location.href = 'mailto:' + ADMIN_EMAIL +
+      '?subject=' + encodeURIComponent('Provider Application') +
+      '&body=' + body;
+  }
+
+  function refreshMailLinks(){
+    const link = document.getElementById('contactLink');
+    if(link){
+      link.href = 'mailto:' + ADMIN_EMAIL;
+    }
+  }
+
+  function setAdminEmail(){
+    const next = prompt('Enter the email where you want to receive leads:', ADMIN_EMAIL);
+    if(!next) return;
+    ADMIN_EMAIL = next.trim();
+    localStorage.setItem('PFN_ADMIN_EMAIL', ADMIN_EMAIL);
+    refreshMailLinks();
+    alert('Saved. Leads will be emailed to: ' + ADMIN_EMAIL);
+  }
+
+  // Wire up UI
+  document.querySelectorAll('.tab').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      setCategory(btn.dataset.svc);
+    });
+  });
+
+  document.getElementById('showBtn').addEventListener('click', function(){
+    const r = calculate();
+    if(!r) return;
+
+    const rangeText = money(r.low) + ' - ' + money(r.high);
+    document.getElementById('result').innerText = rangeText;
+
+    const t = typicalBand(r.low, r.high);
+    document.getElementById('typical').innerText = 'Most similar jobs land around ' + money(t.lo) + ' - ' + money(t.hi);
+
+    document.getElementById('quoteBox').style.display = 'block';
+  });
+
+  document.getElementById('matchBtn').addEventListener('click', function(){
+    const r = calculate();
+    if(!r) return;
+
+    const name = prompt('Your name:');
+    if(!name) return;
+    const phone = prompt('Best phone number:');
+    if(!phone) return;
+    const email = prompt('Email (optional):') || '';
+
+    const subject = encodeURIComponent('NEW LEAD - ' + String(r.cat).toUpperCase() + ' - ' + r.county + ' - ' + r.zip);
+    const body = encodeURIComponent(
+      'Lead details
+' +
+      'Name: ' + name + '
+' +
+      'Phone: ' + phone + '
+' +
+      'Email: ' + email + '
+
+' +
+      'County: ' + r.county + '
+' +
+      'ZIP: ' + r.zip + '
+' +
+      'Category: ' + r.cat + '
+' +
+      'Size/Units: ' + document.getElementById('size').value + '
+' +
+      'Estimated Range: ' + money(r.low) + ' - ' + money(r.high) + '
+'
+    );
+
+    window.location.href = 'mailto:' + ADMIN_EMAIL + '?subject=' + subject + '&body=' + body;
+  });
+
+  // Init
+  refreshMailLinks();
+  document.getElementById('year').innerText = String(new Date().getFullYear());
+  document.getElementById('setEmailLink').addEventListener('click', function(e){
+    e.preventDefault();
+    setAdminEmail();
+  });
+
+  setCategory('cleaning');
+
+  // Tests
+  (function(){
+    console.assert(typeof calculate === 'function', '[tests] calculate() should exist');
+    console.assert(typeof providerApply === 'function', '[tests] providerApply() should exist');
+    console.assert(document.getElementById('contactLink'), '[tests] contactLink should exist');
+    console.assert(validateZip('33063') === true, '[tests] validateZip should accept 5 digits');
+    console.assert(validateZip('3306') === false, '[tests] validateZip should reject invalid');
+    console.assert(!!document.getElementById('quoteBox'), '[tests] quoteBox should exist');
+  })();
+</script>
+
+</body>
+</html>
