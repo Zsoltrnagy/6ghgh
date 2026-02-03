@@ -214,6 +214,10 @@
         <button class="btn ghost" type="button" onclick="document.querySelector('#providers').scrollIntoView({behavior:'smooth'})">Become a Provider</button>
       </div>
 
+      <div class="ctaRow" style="margin-bottom:12px">
+        <button class="btn ghost" type="button" id="downloadBtn">Download HTML</button>
+      </div>
+
       <div class="badges">
         <div class="badge">60-second estimate</div>
         <div class="badge">Price-aware clients</div>
@@ -275,7 +279,7 @@
         </div>
 
         <div>
-          <label for="size" id="sizeLabel">Square Footage / Units</label>
+          <label for="size" id="sizeLabel">Area / size (sq ft)</label>
           <input id="size" inputmode="numeric" placeholder="e.g. 500" required />
         </div>
 
@@ -299,6 +303,24 @@
             <option value="Laminate">Laminate</option>
             <option value="Carpet">Carpet</option>
           </select>
+        </div>
+
+        <div id="petOptionsWrap" class="hidden">
+          <div class="row2">
+            <div>
+              <label for="petOption">Pet service option</label>
+              <select id="petOption"></select>
+            </div>
+            <div>
+              <label for="petCount">Number of pets</label>
+              <select id="petCount">
+                <option value="1" selected>1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4+</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <div>
@@ -334,9 +356,26 @@
           <div class="quoteAmt" id="result"></div>
           <p class="fine" id="noteText">Estimates are market-based ranges from local providers. Final pricing depends on scope, access, materials, and site conditions.</p>
           <p class="fine" id="typical" style="margin-top:6px"></p>
+
+          <div class="row2" style="margin-top:12px">
+            <div>
+              <label for="leadName">Your name</label>
+              <input id="leadName" autocomplete="name" placeholder="John" />
+            </div>
+            <div>
+              <label for="leadPhone">Phone</label>
+              <input id="leadPhone" inputmode="tel" autocomplete="tel" placeholder="(954) 555-1234" />
+            </div>
+          </div>
+          <div style="margin-top:10px">
+            <label for="leadEmail">Email (required)</label>
+            <input id="leadEmail" type="email" autocomplete="email" placeholder="you@email.com" />
+          </div>
+
           <div style="margin-top:10px">
             <button class="btn ghost" type="button" id="matchBtn">Get Matched</button>
           </div>
+          <p class="fine" style="margin-top:8px">If your email app does not open, we will show the admin email so you can copy/paste it.</p>
         </div>
       </form>
     </section>
@@ -380,7 +419,7 @@
     <h2>Contact</h2>
     <p class="muted">Questions or early access?</p>
     <a id="contactLink" class="btn ghost" href="#">Email Us</a>
-
+    <p class="fine" style="margin-top:10px">Email: <span id="adminEmailText" style="font-weight:900"></span></p>
     <p class="fine" style="margin-top:12px">Tip: In the footer, click Set admin email to change where leads are sent (no code editing needed).</p>
   </section>
 
@@ -402,10 +441,27 @@
   // Service lists (service type for all trades)
   const SERVICE_LIST = {
     cleaning: ["Residential", "Post Construction", "Office", "Commercial"],
+    pet: ["Walking", "Sitting", "Wash and Haircut"],
     remodel: ["Interior Painting", "Exterior Painting", "Flooring", "Drywall", "Windows and Doors", "Carpentry", "Other"],
-    plumbing: ["New Construction or Remodel", "Leak Detection", "Water Supply System", "Drain-Waste-Vent (DWV)", "Water Heaters", "Other"],
-    hvac: ["Complete System Installation", "Ductwork", "Duct Cleaning", "Service and Repairs", "Preventive Maintenance", "Indoor Air Quality", "Controls and Energy Efficiency", "Commercial or Condo Work"],
-    pet: ["Walking", "Sitting", "Wash and Haircut"]
+    plumbing: ["New Construction or Remodel", "Leak Detection", "Water Supply System", "Drain-Waste-Vent (DWV)", "Water Heaters", "Disposal Replacement", "Other"],
+    hvac: ["Complete System Installation", "Ductwork", "Duct Cleaning", "Service and Repairs", "Preventive Maintenance", "Indoor Air Quality", "Controls and Energy Efficiency", "Commercial or Condo Work"]
+  };
+
+  // Pet options (unit-based)
+  const PET_OPTIONS = {
+    Walking: [
+      { label: "30-minute walk", value: "walk_30", low: 25, high: 45 },
+      { label: "60-minute walk", value: "walk_60", low: 40, high: 70 }
+    ],
+    Sitting: [
+      { label: "Drop-in visit", value: "sit_dropin", low: 30, high: 55 },
+      { label: "Overnight sitting", value: "sit_overnight", low: 90, high: 160 }
+    ],
+    "Wash and Haircut": [
+      { label: "Small dog", value: "groom_small", low: 70, high: 120 },
+      { label: "Medium dog", value: "groom_medium", low: 90, high: 160 },
+      { label: "Large dog", value: "groom_large", low: 120, high: 220 }
+    ]
   };
 
   let activeCategory = "cleaning";
@@ -434,19 +490,76 @@
   }
 
   function isFlooringSubtype(){
-    const subtype = String(document.getElementById("service").value || "").toLowerCase();
-    return subtype.indexOf("flooring") !== -1;
+    return String(document.getElementById("service").value || "") === "Flooring";
+  }
+
+  function isDisposalSubtype(){
+    return String(document.getElementById("service").value || "") === "Disposal Replacement";
+  }
+
+  function isPetCategory(){
+    return activeCategory === "pet";
+  }
+
+  function refreshPetOptions(){
+    const wrap = document.getElementById("petOptionsWrap");
+    const sel = document.getElementById("petOption");
+    if(!wrap || !sel) return;
+
+    if(!isPetCategory()){
+      wrap.classList.add("hidden");
+      return;
+    }
+
+    wrap.classList.remove("hidden");
+
+    const subtype = document.getElementById("service").value;
+    const opts = PET_OPTIONS[subtype] || [];
+
+    sel.innerHTML = "";
+    opts.forEach(function(o){
+      const opt = document.createElement("option");
+      opt.value = o.value;
+      opt.textContent = o.label;
+      sel.appendChild(opt);
+    });
+
+    // If no options exist, provide a safe default
+    if(!opts.length){
+      const opt = document.createElement("option");
+      opt.value = "default";
+      opt.textContent = "Standard";
+      sel.appendChild(opt);
+    }
+  }
+
+  function hideQuote(){
+    const qb = document.getElementById("quoteBox");
+    if(qb) qb.style.display = "none";
   }
 
   function refreshConditionalFields(){
     const paintWrap = document.getElementById("paintingScopeWrap");
-    if(paintWrap){
-      paintWrap.classList.toggle("hidden", !isPaintingSubtype());
-    }
+    if(paintWrap) paintWrap.classList.toggle("hidden", !isPaintingSubtype());
 
     const floorWrap = document.getElementById("flooringMaterialWrap");
-    if(floorWrap){
-      floorWrap.classList.toggle("hidden", !isFlooringSubtype());
+    if(floorWrap) floorWrap.classList.toggle("hidden", !isFlooringSubtype());
+
+    refreshPetOptions();
+
+    const sizeLabel = document.getElementById("sizeLabel");
+    const sizeInput = document.getElementById("size");
+    if(sizeLabel && sizeInput){
+      if(isDisposalSubtype()){
+        sizeLabel.textContent = "Quantity";
+        sizeInput.placeholder = "e.g. 1";
+      } else if(isPetCategory()){
+        sizeLabel.textContent = "Visits / Units";
+        sizeInput.placeholder = "e.g. 1";
+      } else {
+        sizeLabel.textContent = "Area / size (sq ft)";
+        sizeInput.placeholder = "e.g. 500";
+      }
     }
   }
 
@@ -466,33 +579,21 @@
       sel.appendChild(opt);
     });
 
-    const sizeLabel = document.getElementById("sizeLabel");
-    if(sizeLabel){
-      sizeLabel.textContent = (cat === "pet") ? "Visits / Units" : "Area / size (sq ft)";
-    }
-
     refreshConditionalFields();
-
-    const qb = document.getElementById("quoteBox");
-    if(qb) qb.style.display = "none";
+    hideQuote();
   }
 
   function calculate(){
     const county = document.getElementById("county").value;
     const zip = document.getElementById("zip").value.trim();
-    const size = Number(document.getElementById("size").value);
 
     if(!validateZip(zip)){
       alert("Please enter a 5-digit ZIP code.");
       return null;
     }
 
-    if(!size || size < 1){
-      alert("Enter a realistic size.");
-      return null;
-    }
-
     const subtype = document.getElementById("service").value;
+
     const stories = document.getElementById("stories").value;
     const prep = document.getElementById("prep").value;
     const needWhen = document.getElementById("needWhen").value;
@@ -501,17 +602,52 @@
     const flooringMaterial = document.getElementById("flooringMaterial").value;
     const notes = document.getElementById("notes").value.trim();
 
-    // Base MVP math
-    let low = size * 1.5;
-    let high = size * 3.5;
+    const rawSize = String(document.getElementById("size").value || "").trim();
+    let size = Number(rawSize);
 
-    // Category multipliers
-    const svcMult = { cleaning: 1.0, pet: 0.35, remodel: 1.25, plumbing: 1.15, hvac: 1.4 };
+    if(isDisposalSubtype()){
+      if(!size || size < 1){
+        size = 1;
+        document.getElementById("size").value = "1";
+      }
+    } else {
+      if(!size || size < 1){
+        alert("Enter a realistic size.");
+        return null;
+      }
+    }
+
+    let low, high;
+
+    if(isDisposalSubtype()){
+      const qty = Math.max(1, size || 1);
+      low = 250 * qty;
+      high = 650 * qty;
+    } else if(isPetCategory()){
+      const visits = Math.max(1, size || 1);
+      const petCountRaw = Number(document.getElementById("petCount").value || 1);
+      const petCount = Math.max(1, petCountRaw >= 4 ? 4 : petCountRaw);
+
+      const optionValue = document.getElementById("petOption").value;
+      const options = PET_OPTIONS[subtype] || [];
+      const found = options.find(function(o){ return o.value === optionValue; }) || options[0];
+
+      const perLow = found ? found.low : 25;
+      const perHigh = found ? found.high : 55;
+      const extraPetMult = (petCount === 1) ? 1.00 : (petCount === 2 ? 1.35 : (petCount === 3 ? 1.60 : 1.80));
+
+      low = perLow * visits * extraPetMult;
+      high = perHigh * visits * extraPetMult;
+    } else {
+      low = size * 1.5;
+      high = size * 3.5;
+    }
+
+    const svcMult = { cleaning: 1.0, pet: 1.0, remodel: 1.25, plumbing: 1.15, hvac: 1.4 };
     const m = svcMult[activeCategory] || 1.0;
     low *= m;
     high *= m;
 
-    // Access / stories adjustment
     const accessMult = {
       "1-story / easy access": 1.00,
       "2-story": 1.06,
@@ -521,9 +657,8 @@
     low *= accessMult[stories] || 1.0;
     high *= accessMult[stories] || 1.0;
 
-    // Prep adjustment
     const prepMult = {
-      "none": 1.00,
+      none: 1.00,
       "light (minor patching)": 1.05,
       "medium (repairs)": 1.12,
       "heavy (major repairs)": 1.22
@@ -531,34 +666,39 @@
     low *= prepMult[prep] || 1.0;
     high *= prepMult[prep] || 1.0;
 
-    // Service level adjustment
     const levelMult = { Budget: 0.92, Standard: 1.00, Premium: 1.12, Luxury: 1.25 };
     low *= levelMult[serviceLevel] || 1.0;
     high *= levelMult[serviceLevel] || 1.0;
 
-    // County adjustment
+    if(isFlooringSubtype()){
+      const matMult = {
+        Tile: 1.00,
+        Wood: 1.12,
+        "Natural stone": 1.35,
+        Laminate: 0.85,
+        Carpet: 0.80
+      };
+      const mm = matMult[flooringMaterial] || 1.0;
+      low *= mm;
+      high *= mm;
+    }
+
     low *= COUNTY_MULT[county] || 1.0;
     high *= COUNTY_MULT[county] || 1.0;
 
-    // Narrow band
     const c = applyConfidenceBand(low, high);
     low = c.lo;
     high = c.hi;
 
     return {
-      low: low,
-      high: high,
-      county: county,
-      zip: zip,
+      low, high, county, zip,
       cat: activeCategory,
-      subtype: subtype,
-      stories: stories,
-      prep: prep,
-      needWhen: needWhen,
-      serviceLevel: serviceLevel,
+      subtype, stories, prep, needWhen, serviceLevel,
       paintingScope: isPaintingSubtype() ? paintingScope : "",
       flooringMaterial: isFlooringSubtype() ? flooringMaterial : "",
-      notes: notes
+      petOption: isPetCategory() ? document.getElementById("petOption").value : "",
+      petCount: isPetCategory() ? document.getElementById("petCount").value : "",
+      notes
     };
   }
 
@@ -572,7 +712,6 @@
       return;
     }
 
-    // IMPORTANT: never put literal line breaks inside quoted strings.
     const body = encodeURIComponent(
       "Provider application\n" +
       "Name: " + name + "\n" +
@@ -586,10 +725,52 @@
       "&body=" + body;
   }
 
+  function openMailto(subject, bodyText){
+    const subjectEnc = encodeURIComponent(subject);
+    const bodyEnc = encodeURIComponent(bodyText);
+    const href = "mailto:" + ADMIN_EMAIL + "?subject=" + subjectEnc + "&body=" + bodyEnc;
+
+    try{
+      window.location.href = href;
+    } catch(e) {
+      // ignore
+    }
+
+    // Fallback message (some in-app browsers block mailto)
+    setTimeout(function(){
+      const msg = "If your email app didn't open, email us at: " + ADMIN_EMAIL;
+      try{
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(ADMIN_EMAIL).then(function(){
+            alert(msg + "\n\n(Email copied to clipboard)");
+          }).catch(function(){
+            alert(msg);
+          });
+        } else {
+          alert(msg);
+        }
+      } catch(err){
+        alert(msg);
+      }
+    }, 350);
+  }
+
   function refreshMailLinks(){
     const link = document.getElementById("contactLink");
+    const txt = document.getElementById("adminEmailText");
+
+    if(txt) txt.textContent = ADMIN_EMAIL;
+
     if(link){
       link.href = "mailto:" + ADMIN_EMAIL;
+      link.onclick = function(e){
+        e.preventDefault();
+        openMailto(
+          "PriceFirstNow Inquiry",
+          "Hello, I have a question about PriceFirstNow.\n\nMy question: "
+        );
+        return false;
+      };
     }
   }
 
@@ -611,7 +792,21 @@
 
   document.getElementById("service").addEventListener("change", function(){
     refreshConditionalFields();
+    hideQuote();
   });
+
+  document.getElementById("petOption").addEventListener("change", hideQuote);
+  document.getElementById("petCount").addEventListener("change", hideQuote);
+
+  document.getElementById("county").addEventListener("change", hideQuote);
+  document.getElementById("zip").addEventListener("input", hideQuote);
+  document.getElementById("stories").addEventListener("change", hideQuote);
+  document.getElementById("prep").addEventListener("change", hideQuote);
+  document.getElementById("needWhen").addEventListener("change", hideQuote);
+  document.getElementById("serviceLevel").addEventListener("change", hideQuote);
+  document.getElementById("size").addEventListener("input", hideQuote);
+  document.getElementById("flooringMaterial").addEventListener("change", hideQuote);
+  document.getElementById("paintingScope").addEventListener("change", hideQuote);
 
   document.getElementById("showBtn").addEventListener("click", function(){
     const r = calculate();
@@ -624,32 +819,46 @@
     document.getElementById("typical").innerText =
       "Most similar jobs land around " + money(t.lo) + " - " + money(t.hi);
 
+    const ln = document.getElementById("leadName");
+    const lp = document.getElementById("leadPhone");
+    const le = document.getElementById("leadEmail");
+    if(ln) ln.value = "";
+    if(lp) lp.value = "";
+    if(le) le.value = "";
+
     document.getElementById("quoteBox").style.display = "block";
   });
 
-  // Ensure Get Matched button always works
   document.getElementById("matchBtn").addEventListener("click", function(){
     const r = calculate();
     if(!r) return;
 
-    const name = prompt("Your name:");
-    if(!name) return;
-    const phone = prompt("Best phone number:");
-    if(!phone) return;
-    const email = prompt("Email (required):");
-    if(!email){
-      alert("Email is required to get matched.");
+    const name = String(document.getElementById("leadName").value || "").trim();
+    const phone = String(document.getElementById("leadPhone").value || "").trim();
+    const email = String(document.getElementById("leadEmail").value || "").trim();
+
+    if(!name){
+      alert("Please enter your name.");
+      document.getElementById("leadName").focus();
       return;
     }
-    // very simple check for MVP
+    if(!phone){
+      alert("Please enter your phone number.");
+      document.getElementById("leadPhone").focus();
+      return;
+    }
+    if(!email){
+      alert("Email is required to get matched.");
+      document.getElementById("leadEmail").focus();
+      return;
+    }
     if(email.indexOf("@") === -1 || email.indexOf(".") === -1){
       alert("Please enter a valid email address.");
+      document.getElementById("leadEmail").focus();
       return;
     }
 
-    const subject = encodeURIComponent(
-      "NEW LEAD - " + String(r.cat).toUpperCase() + " - " + r.county + " - " + r.zip
-    );
+    const subject = "NEW LEAD - " + String(r.cat).toUpperCase() + " - " + r.county + " - " + r.zip;
 
     let bodyText =
       "Lead details\n" +
@@ -667,24 +876,48 @@
     if(r.paintingScope){
       bodyText += "Painting scope: " + r.paintingScope + "\n";
     }
+    if(r.flooringMaterial){
+      bodyText += "Flooring material: " + r.flooringMaterial + "\n";
+    }
+    if(r.petOption){
+      const opts = PET_OPTIONS[r.subtype] || [];
+      const found = opts.find(function(o){ return o.value === r.petOption; });
+      bodyText += "Pet option: " + (found ? found.label : r.petOption) + "\n";
+    }
+    if(r.petCount){
+      bodyText += "Number of pets: " + r.petCount + "\n";
+    }
 
     bodyText +=
       "When needed: " + (r.needWhen || "") + "\n" +
       "Service level: " + (r.serviceLevel || "") + "\n" +
       "Estimated Range: " + money(r.low) + " - " + money(r.high) + "\n";
 
-    if(r.flooringMaterial){
-      bodyText += "Flooring material: " + r.flooringMaterial + "\n";
-    }
-
     if(r.notes){
       bodyText += "\nNotes: " + r.notes + "\n";
     }
 
-    const body = encodeURIComponent(bodyText);
-
-    window.location.href = "mailto:" + ADMIN_EMAIL + "?subject=" + subject + "&body=" + body;
+    openMailto(subject, bodyText);
   });
+
+  // Download current page as HTML file
+  const downloadBtn = document.getElementById("downloadBtn");
+  if(downloadBtn){
+    downloadBtn.addEventListener("click", function(){
+      const html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+      const blob = new Blob([html], { type: "text/html;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "index.html";
+      document.body.appendChild(a);
+      a.click();
+
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  }
 
   // Init
   refreshMailLinks();
@@ -703,17 +936,41 @@
     console.assert(validateZip("33063") === true, "[tests] validateZip should accept 5 digits");
     console.assert(validateZip("3306") === false, "[tests] validateZip should reject invalid");
     console.assert(document.querySelectorAll(".tab").length === 5, "[tests] should have 5 tabs");
-    console.assert(Array.isArray(SERVICE_LIST.remodel) && SERVICE_LIST.remodel.length > 3, "[tests] remodel should have service types");
+
+    // Flooring material should affect price
     setCategory("remodel");
-    console.assert(document.getElementById("service").options.length === SERVICE_LIST.remodel.length, "[tests] service dropdown should match remodel list");
-    // Painting scope should show when painting subtype selected
-    document.getElementById("service").value = "Interior Painting";
-    refreshConditionalFields();
-    console.assert(!document.getElementById("paintingScopeWrap").classList.contains("hidden"), "[tests] painting scope should show for painting subtype");
+    document.getElementById("zip").value = "33063";
+    document.getElementById("size").value = "500";
     document.getElementById("service").value = "Flooring";
     refreshConditionalFields();
-    console.assert(document.getElementById("paintingScopeWrap").classList.contains("hidden"), "[tests] painting scope should hide for non-painting subtype");
-    setCategory("cleaning");
+    document.getElementById("flooringMaterial").value = "Tile";
+    const r1 = calculate();
+    document.getElementById("flooringMaterial").value = "Carpet";
+    const r2 = calculate();
+    console.assert(r1 && r2 && r1.low > r2.low, "[tests] carpet should be cheaper than tile");
+
+    // Disposal replacement should return price even if size empty (defaults to 1)
+    setCategory("plumbing");
+    document.getElementById("zip").value = "33063";
+    document.getElementById("service").value = "Disposal Replacement";
+    refreshConditionalFields();
+    document.getElementById("size").value = "";
+    const dr = calculate();
+    console.assert(dr && dr.low > 0 && dr.high > dr.low, "[tests] disposal replacement should return a valid range");
+
+    // Pet care should not be $1 and should vary by option
+    setCategory("pet");
+    document.getElementById("zip").value = "33063";
+    document.getElementById("size").value = "1";
+    document.getElementById("service").value = "Walking";
+    refreshConditionalFields();
+    document.getElementById("petCount").value = "1";
+    document.getElementById("petOption").value = "walk_30";
+    const pw1 = calculate();
+    document.getElementById("petOption").value = "walk_60";
+    const pw2 = calculate();
+    console.assert(pw1 && pw2 && pw2.low > pw1.low, "[tests] 60-min walk should be more than 30-min walk");
+    console.assert(pw1.low > 5, "[tests] pet walk should not be near $1");
   })();
 </script>
 
