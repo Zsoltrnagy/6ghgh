@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PriceFirstNow - Instant Price Ranges</title>
+  <meta name="description" content="Instant local price ranges for remodeling, cleaning, plumbing, HVAC, and pet care in Palm Beach and Broward County.">
+
+  <style>
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:#0b102a;
+      color:#ffffff;
+    }
+    a{color:inherit;text-decoration:none}
+
+    .container{max-width:1100px;margin:auto;padding:20px}
+
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}
+    .logo{font-weight:bold;font-size:22px}
+    nav a{margin-left:15px;font-weight:bold}
+
+    .card{
+      background:#141b4d;
+      border-radius:14px;
+      padding:20px;
+      margin-bottom:20px;
+    }
+
+    h1{font-size:38px;margin-top:0}
+    h2{margin-top:0}
+    .muted{color:#c7d2fe}
+
+    .btn{
+      padding:12px 18px;
+      border-radius:10px;
+      border:none;
+      font-weight:bold;
+      cursor:pointer;
+      background:#22d3ee;
+      color:#022c22;
+      display:inline-block;
+    }
+
+    .btn.secondary{
+      background:#1e40af;
+      color:#fff;
+    }
+
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .col{flex:1}
+
+    input, select, textarea{
+      width:100%;
+      padding:10px;
+      border-radius:8px;
+      border:none;
+      margin-top:4px;
+    }
+
+    label{font-size:12px;font-weight:bold;color:#c7d2fe}
+
+    footer{text-align:center;color:#c7d2fe;font-size:13px;margin:30px 0}
+
+    @media(max-width:700px){
+      h1{font-size:30px}
+      header{flex-direction:column;gap:10px}
+      nav a{margin-left:10px}
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="logo">PriceFirstNow</div>
+    <nav>
+      <a href="#quote">Get Quote</a>
+      <a href="#providers">Providers</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <section class="card">
+    <h1>See the price first.</h1>
+    <p class="muted">Instant price ranges for home services in Broward and Palm Beach County. No calls. No pressure.</p>
+    <div class="row">
+      <a href="#quote" class="btn">Get Instant Quote</a>
+      <a href="#providers" class="btn secondary">Become a Provider</a>
+    </div>
+  </section>
+
+  <section class="card" id="quote">
+    <h2>Instant Price Estimate</h2>
+
+    <label for="service">Service</label>
+    <select id="service">
+      <option value="cleaning">Cleaning</option>
+      <option value="remodel">Remodeling</option>
+      <option value="plumbing">Plumbing</option>
+      <option value="hvac">HVAC</option>
+      <option value="pet">Pet Care</option>
+    </select>
+
+    <label for="zip" style="margin-top:10px">ZIP Code</label>
+    <input id="zip" inputmode="numeric" maxlength="5" placeholder="33063">
+
+    <label for="size" style="margin-top:10px">Square Footage / Units</label>
+    <input id="size" inputmode="numeric" placeholder="e.g. 500">
+
+    <button class="btn" style="margin-top:15px" type="button" onclick="calculate()">Show Price Range</button>
+
+    <div id="result" style="margin-top:15px;font-weight:bold"></div>
+    <div id="typical" class="muted"></div>
+  </section>
+
+  <section class="card" id="providers">
+    <h2>Become a Provider</h2>
+    <p class="muted">Get price-aware local leads. No monthly fee during launch.</p>
+
+    <label for="pname">Name</label>
+    <input id="pname" autocomplete="name">
+
+    <label for="pcompany" style="margin-top:8px">Company</label>
+    <input id="pcompany" autocomplete="organization">
+
+    <label for="pemail" style="margin-top:8px">Email</label>
+    <input id="pemail" type="email" autocomplete="email">
+
+    <button class="btn" style="margin-top:15px" type="button" onclick="providerApply()">Send Application</button>
+  </section>
+
+  <section class="card" id="contact">
+    <h2>Contact</h2>
+    <p class="muted">Questions or early access?</p>
+    <a id="contactLink" class="btn secondary" href="#">Email Us</a>
+  </section>
+
+  <footer>
+    &copy; <span id="year"></span> PriceFirstNow &middot; <a href="#" id="setEmailLink" style="text-decoration:underline">Set admin email</a>
+  </footer>
+
+</div>
+
+<script>
+  // DEFAULT email (you can change it without editing the file using the "Set admin email" link in the footer)
+  const DEFAULT_ADMIN_EMAIL = "pricefirstnow@gmail.com";
+  let ADMIN_EMAIL = localStorage.getItem('PFN_ADMIN_EMAIL') || DEFAULT_ADMIN_EMAIL;
+
+  function money(n){
+    return '$' + Math.round(Number(n)).toLocaleString();
+  }
+
+  function validateZip(v){
+    return /^[0-9]{5}$/.test(String(v || '').trim());
+  }
+
+  function calculate(){
+    const service = document.getElementById('service').value;
+    const zip = document.getElementById('zip').value.trim();
+    const size = Number(document.getElementById('size').value);
+
+    if(zip && !validateZip(zip)){
+      alert('Please enter a 5-digit ZIP code.');
+      return;
+    }
+
+    if(!size || size < 1){
+      alert('Enter a realistic size');
+      return;
+    }
+
+    // Simple MVP math (you can customize per service later)
+    let low = size * 1.5;
+    let high = size * 3.5;
+
+    // Small service-based adjustments so the dropdown is not "ignored"
+    const svcMult = { cleaning: 1.0, pet: 0.35, remodel: 1.25, plumbing: 1.15, hvac: 1.4 };
+    const m = svcMult[service] || 1.0;
+    low *= m;
+    high *= m;
+
+    // Global narrowing
+    low *= 1.05;
+    high *= 0.80;
+
+    const rangeText = money(low) + ' - ' + money(high);
+    document.getElementById('result').innerText = rangeText;
+
+    const tLow = low + (high - low) * 0.35;
+    const tHigh = low + (high - low) * 0.65;
+    document.getElementById('typical').innerText = 'Most similar jobs land around ' + money(tLow) + ' - ' + money(tHigh);
+  }
+
+  function providerApply(){
+    const name = document.getElementById('pname').value.trim();
+    const company = document.getElementById('pcompany').value.trim();
+    const email = document.getElementById('pemail').value.trim();
+
+    if(!name || !email){
+      alert('Please enter at least your name and email.');
+      return;
+    }
+
+    // IMPORTANT: Use \n inside strings (the previous version had literal newlines inside quotes, causing Invalid/Unexpected token)
+    const body = encodeURIComponent(
+      'Provider application\n' +
+      'Name: ' + name + '\n' +
+      'Company: ' + company + '\n' +
+      'Email: ' + email + '\n'
+    );
+
+    window.location.href = 'mailto:' + ADMIN_EMAIL +
+      '?subject=' + encodeURIComponent('Provider Application') +
+      '&body=' + body;
+  }
+
+  function refreshMailLinks(){
+    const link = document.getElementById('contactLink');
+    if(link){
+      link.href = 'mailto:' + ADMIN_EMAIL;
+    }
+  }
+
+  function setAdminEmail(){
+    const next = prompt('Enter the email where you want to receive leads:', ADMIN_EMAIL);
+    if(!next) return;
+    ADMIN_EMAIL = next.trim();
+    localStorage.setItem('PFN_ADMIN_EMAIL', ADMIN_EMAIL);
+    refreshMailLinks();
+    alert('Saved. Leads will be emailed to: ' + ADMIN_EMAIL);
+  }
+
+  // Init
+  refreshMailLinks();
+  document.getElementById('year').innerText = String(new Date().getFullYear());
+  document.getElementById('setEmailLink').addEventListener('click', function(e){
+    e.preventDefault();
+    setAdminEmail();
+  });
+
+  // Basic tests (open DevTools Console)
+  (function(){
+    console.assert(typeof calculate === 'function', '[tests] calculate() should exist');
+    console.assert(typeof providerApply === 'function', '[tests] providerApply() should exist');
+    console.assert(document.getElementById('contactLink'), '[tests] contactLink should exist');
+    console.assert(validateZip('33063') === true, '[tests] validateZip should accept 5 digits');
+    console.assert(validateZip('3306') === false, '[tests] validateZip should reject invalid');
+  })();
+</script>
+
+</body>
+</html>
